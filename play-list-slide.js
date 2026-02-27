@@ -20,6 +20,24 @@ export class PlayListSlide extends LitElement {
     this.active = false;
   }
 
+  _onClick() {
+    // find my index in the parent <play-list> light DOM
+    const parent = this.parentElement;
+    if (!parent) return;
+
+    const slides = Array.from(parent.querySelectorAll("play-list-slide"));
+    const index = slides.indexOf(this);
+    if (index < 0) return;
+
+    this.dispatchEvent(
+      new CustomEvent("play-list-index-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { index },
+      })
+    );
+  }
+
   static get styles() {
     return css`
       :host {
@@ -30,6 +48,7 @@ export class PlayListSlide extends LitElement {
       }
 
       .card {
+        cursor: pointer; /* so it feels clickable */
         position: relative;
         border-radius: 12px;
         background: var(--play-list-card-bg, #f7fbff);
@@ -38,70 +57,12 @@ export class PlayListSlide extends LitElement {
         min-height: 340px;
         overflow: hidden;
       }
-
-      /* subtle patterned background */
-      .card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        opacity: 0.25;
-        pointer-events: none;
-        background: linear-gradient(
-              135deg,
-              rgba(11, 74, 162, 0.08) 0 1px,
-              transparent 1px 100%
-            )
-            0 0/26px 26px,
-          linear-gradient(
-              45deg,
-              rgba(11, 74, 162, 0.05) 0 1px,
-              transparent 1px 100%
-            )
-            0 0/22px 22px;
-      }
-
-      .kicker,
-      .title,
-      .content,
-      .dots {
-        position: relative;
-      }
-
-      .kicker {
-        margin: 0 0 8px;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        font-weight: 700;
-        color: var(--play-list-blue, #1f63c6);
-        text-transform: uppercase;
-      }
-
-      .title {
-        margin: 0 0 16px;
-        font-size: clamp(30px, 3.2vw, 44px);
-        line-height: 1.05;
-        color: var(--play-list-title, #163b7a);
-      }
-
-      .content {
-        max-width: 620px;
-      }
-
-      .body {
-        margin: 0;
-        font-size: 14px;
-        line-height: 1.5;
-        color: #1f2a3a;
-        max-height: 120px; /* scroll area like screenshot */
-        overflow: auto;
-        padding-right: 10px;
-      }
     `;
   }
 
   render() {
     return html`
-      <section class="card" aria-live="polite">
+      <section class="card" @click=${this._onClick} aria-live="polite">
         <p class="kicker">${this.topHeading}</p>
         <h2 class="title">${this.secondHeading}</h2>
         <div class="content">

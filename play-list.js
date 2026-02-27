@@ -21,6 +21,7 @@ export class PlayList extends LitElement {
     return css`
       :host {
         display: block;
+        outline: none;
       }
 
       .slider {
@@ -29,10 +30,6 @@ export class PlayList extends LitElement {
         margin: 40px auto;
         display: grid;
         align-items: center;
-      }
-
-      ::slotted(play-list-slide) {
-        /* slides decide visibility via [active] */
       }
 
       /* arrows */
@@ -95,12 +92,16 @@ export class PlayList extends LitElement {
 
   firstUpdated() {
     this._syncActive();
+
+    // make host focusable for keyboard
+    if (!this.hasAttribute("tabindex")) this.setAttribute("tabindex", "0");
+
     // keyboard support (left/right)
     this.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft") this.prev();
       if (e.key === "ArrowRight") this.next();
     });
-    this.setAttribute("tabindex", "0"); // make host focusable for keyboard
+    
   }
 
   updated(changed) {
@@ -108,14 +109,14 @@ export class PlayList extends LitElement {
   }
 
   _slides() {
-    // slotted children in light DOM
+    // slides are light DOM children: <play-list-slide>...</play-list-slide>
     return Array.from(this.querySelectorAll("play-list-slide"));
   }
 
   _clampIndex(i) {
     const n = this._slides().length;
     if (n === 0) return 0;
-    return ((i % n) + n) % n;
+    return ((i % n) + n) % n; // wrap
   }
 
   _syncActive() {
@@ -123,10 +124,13 @@ export class PlayList extends LitElement {
     if (!slides.length) return;
 
     const idx = this._clampIndex(this.index);
-    if (idx !== this.index) this.index = idx;
+    if (idx !== this.index) {
+      // avoid infinite loop: only set if needed
+      this.index = idx;
+      return;
+    }
 
     slides.forEach((s, i) => (s.active = i === this.index));
-    this.requestUpdate();
   }
 
   prev() {
@@ -142,46 +146,39 @@ export class PlayList extends LitElement {
   }
 
   _onSlotChange() {
+    // if slides were added/removed after render
     this._syncActive();
+    this.requestUpdate();
   }
 
   render() {
+    const count = this._slides().length;
+
     return html`
-    <div class="wrapper">
-      <play-list index="0">
-        <play-list-slide
-          top-heading="TOP LINE HEADING"
-          second-heading="Slide 1, sub-heading"
-        >
-          <p>
-            This could be an image, a whole bunch of text or anything really...
-            This could be an image, a whole bunch of text or anything really...
-          </p>
-        </play-list-slide>
+      <div class="slider">
+        <button class="nav prev" @click=${this.prev} aria-label="Previous slide">
+          ‹
+        </button>
 
-        <play-list-slide
-          top-heading="TOP LINE HEADING"
-          second-heading="Slide 2, sub-heading"
-        >
-          <p>Second slide content goes here...</p>
-        </play-list-slide>
+        <!-- The slides come from outside via slot -->
+        <slot @slotchange=${this._onSlotChange}></slot>
 
-        <play-list-slide
-          top-heading="TOP LINE HEADING"
-          second-heading="Slide 3, sub-heading"
-        >
-          <p>Third slide content goes here...</p>
-        </play-list-slide>
+        <button class="nav next" @click=${this.next} aria-label="Next slide">
+          ›
+        </button>
 
-        <play-list-slide
-          top-heading="TOP LINE HEADING"
-          second-heading="Slide 4, sub-heading"
-        >
-          <p>Fourth slide content goes here...</p>
-        </play-list-slide>
-      </play-list>
-    </div>
-  `;
+        <div class="dots" ?hidden=${count <= 1}>
+          ${Array.from({ length: count }, (_, i) => html`
+            <button
+              class="dot ${i === this.index ? "active" : ""}"
+              @click=${() => this.goTo(i)}
+              aria-label="Go to slide ${i + 1}"
+            ></button>
+          `)}
+        </div>
+      </div>
+    `;
+  }
 }
 
 globalThis.customElements.define(PlayList.tag, PlayList);

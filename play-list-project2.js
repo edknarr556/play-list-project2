@@ -5,6 +5,8 @@
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
+import "./play-list.js";
+import "./play-list-slide.js";
 
 /**
  * `play-list-project2`
@@ -17,21 +19,10 @@ export class PlayListProject2 extends DDDSuper(I18NMixin(LitElement)) {
   static get tag() {
     return "play-list-project2";
   }
+ 
+
 
   constructor() {
-    super();
-    this.title = "";
-    this.t = this.t || {};
-    this.t = {
-      ...this.t,
-      title: "Title",
-    };
-    this.registerLocalization({
-      context: this,
-      localesPath:
-        new URL("./locales/play-list-project2.ar.json", import.meta.url).href +
-        "/../",
-    });
   }
 
   // Lit reactive properties

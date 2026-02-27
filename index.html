@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <base href="/">
   <meta charset="utf-8">
@@ -34,14 +33,19 @@
 
 <body>
   <div id="demo">
-    <h1>play-list-project2</h1>
-    <!-- this is going to do whatever the tag's defaults are -->
-    <h2>Default</h2>
-    <play-list-project2></play-list-project2>
-    <h2>Slot usage</h2>
-    <play-list-project2 data-accent="2" data-primary="17"><div>Sample slot content</div></play-list-project2>
-    <h2>Property usage</h2>
-    <play-list-project2 id="example" title="Sample property title"></play-list-project2>
+   <play-list>
+  <play-list-slide top-heading="TOP" second-heading="Slide 1">
+    <p>A whole bunch of content in here</p>
+  </play-list-slide>
+  <play-list-slide top-heading="TOP" second-heading="Slide 2">
+    <p>A whole bunch of content in here</p>
+  </play-list-slide>
+  <play-list-slide top-heading="TOP" second-heading="Slide 3">
+    <p>A whole bunch of content in here</p>
+  </play-list-slide>
+  <play-list-slide top-heading="TOP" second-heading="Slide 4">
+    <p>A whole bunch of content in here</p>
+</play-list>  
   </div>
   <script type="module" src="./play-list-project2.js"></script>
 
