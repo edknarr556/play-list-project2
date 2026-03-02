@@ -22,8 +22,10 @@ export class PlayListProject2 extends DDDSuper(I18NMixin(LitElement)) {
  
 
 
-  constructor() {
-  }
+constructor() {
+  super();
+  this.title = "";
+}
 
   // Lit reactive properties
   static get properties() {
@@ -40,9 +42,9 @@ export class PlayListProject2 extends DDDSuper(I18NMixin(LitElement)) {
       :host {
         display: block;
         color: var(--ddd-theme-primary);
-        background-color: var(--ddd-theme-accent);
         font-family: var(--ddd-font-navigation);
       }
+
       .wrapper {
         margin: var(--ddd-spacing-2);
         padding: var(--ddd-spacing-4);
@@ -54,13 +56,16 @@ export class PlayListProject2 extends DDDSuper(I18NMixin(LitElement)) {
   }
 
   // Lit render the HTML
-  render() {
-    return html`
-<div class="wrapper">
-  <h3><span>${this.t.title}:</span> ${this.title}</h3>
-  <slot></slot>
-</div>`;
-  }
+render() {
+  return html`
+    <div class="wrapper">
+      <h3><span>${this.t.title}:</span> ${this.title}</h3>
+      <play-list index="0" wrap>
+        <slot></slot>
+      </play-list>
+    </div>
+  `;
+}
 
   /**
    * haxProperties integration via file reference

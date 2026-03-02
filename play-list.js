@@ -1,27 +1,29 @@
 import { LitElement, html, css } from "lit";
-import "./play-list-slide.js";
-
+ import "./play-list-slide.js";
 export class PlayList extends LitElement {
   static get tag() {
     return "play-list";
+   
   }
 
   static get properties() {
     return {
       index: { type: Number, reflect: true },
+      wrap: { type: Boolean, reflect: true },
     };
   }
 
   constructor() {
     super();
     this.index = 0;
+    this.wrap = true;
   }
 
   static get styles() {
     return css`
       :host {
         display: block;
-        outline: none;
+        --play-list-accent: var(--ddd-theme-primary, #1f63c6);
       }
 
       .slider {
@@ -30,9 +32,9 @@ export class PlayList extends LitElement {
         margin: 40px auto;
         display: grid;
         align-items: center;
+        overflow: visible;
       }
 
-      /* arrows */
       .nav {
         position: absolute;
         top: 50%;
@@ -40,16 +42,15 @@ export class PlayList extends LitElement {
         width: 44px;
         height: 44px;
         border-radius: 999px;
-        border: 2px solid rgba(31, 99, 198, 0.35);
+        border: 2px solid color-mix(in srgb, var(--play-list-accent) 35%, transparent);
         background: #fff;
-        color: var(--play-list-blue, #1f63c6);
+        color: var(--play-list-accent);
         font-size: 28px;
-        line-height: 1;
         display: grid;
         place-items: center;
         cursor: pointer;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-        user-select: none;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        z-index: 5;
       }
 
       .nav.prev {
@@ -59,18 +60,13 @@ export class PlayList extends LitElement {
         right: -18px;
       }
 
-      .nav:hover {
-        border-color: rgba(31, 99, 198, 0.65);
-      }
-
-      /* dots */
       .dots {
         position: absolute;
         left: 28px;
         bottom: 16px;
         display: flex;
         gap: 10px;
-        z-index: 2;
+        z-index: 6;
       }
 
       .dot {
@@ -78,30 +74,40 @@ export class PlayList extends LitElement {
         height: 9px;
         border-radius: 999px;
         border: none;
-        background: rgba(31, 99, 198, 0.25);
+        background: color-mix(in srgb, var(--play-list-accent) 25%, transparent);
         cursor: pointer;
         padding: 0;
       }
 
       .dot.active {
-        background: var(--play-list-blue, #1f63c6);
+        background: var(--play-list-accent);
         width: 20px;
+      }
+
+      @media (max-width: 520px) {
+        .nav.prev {
+          left: 10px;
+        }
+        .nav.next {
+          right: 10px;
+        }
       }
     `;
   }
 
   firstUpdated() {
-    this._syncActive();
-
-    // make host focusable for keyboard
     if (!this.hasAttribute("tabindex")) this.setAttribute("tabindex", "0");
 
-    // keyboard support (left/right)
+    this._syncActive();
+
     this.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft") this.prev();
       if (e.key === "ArrowRight") this.next();
     });
-    
+
+    this.addEventListener("play-list-index-changed", (e) => {
+      this.goTo(e.detail.index);
+    });
   }
 
   updated(changed) {
@@ -109,71 +115,67 @@ export class PlayList extends LitElement {
   }
 
   _slides() {
-    // slides are light DOM children: <play-list-slide>...</play-list-slide>
-    return Array.from(this.querySelectorAll("play-list-slide"));
+    const slot = this.shadowRoot?.querySelector("slot");
+    const assigned = slot ? slot.assignedElements({ flatten: true }) : [];
+    return assigned.filter((el) => el.tagName?.toLowerCase() === "play-list-slide");
   }
 
-  _clampIndex(i) {
+  _maxIndex() {
+    return Math.max(0, this._slides().length - 1);
+  }
+
+  _clampOrWrap(i) {
     const n = this._slides().length;
     if (n === 0) return 0;
-    return ((i % n) + n) % n; // wrap
+    if (this.wrap) return ((i % n) + n) % n;
+    return Math.min(this._maxIndex(), Math.max(0, i));
   }
 
   _syncActive() {
     const slides = this._slides();
     if (!slides.length) return;
 
-    const idx = this._clampIndex(this.index);
+    const idx = this._clampOrWrap(this.index);
     if (idx !== this.index) {
-      // avoid infinite loop: only set if needed
       this.index = idx;
       return;
     }
 
     slides.forEach((s, i) => (s.active = i === this.index));
+    this.requestUpdate(); // refresh dots
   }
 
   prev() {
-    this.index = this._clampIndex(this.index - 1);
+    if (!this.wrap && this.index === 0) return;
+    this.index = this._clampOrWrap(this.index - 1);
   }
 
   next() {
-    this.index = this._clampIndex(this.index + 1);
+    if (!this.wrap && this.index === this._maxIndex()) return;
+    this.index = this._clampOrWrap(this.index + 1);
   }
 
   goTo(i) {
-    this.index = this._clampIndex(i);
+    this.index = this._clampOrWrap(i);
   }
 
   _onSlotChange() {
-    // if slides were added/removed after render
     this._syncActive();
-    this.requestUpdate();
   }
 
   render() {
     const count = this._slides().length;
-
     return html`
       <div class="slider">
-        <button class="nav prev" @click=${this.prev} aria-label="Previous slide">
-          ‹
-        </button>
+        <button class="nav prev" @click=${this.prev} aria-label="Previous slide">‹</button>
 
-        <!-- The slides come from outside via slot -->
         <slot @slotchange=${this._onSlotChange}></slot>
 
-        <button class="nav next" @click=${this.next} aria-label="Next slide">
-          ›
-        </button>
+        <button class="nav next" @click=${this.next} aria-label="Next slide">›</button>
 
         <div class="dots" ?hidden=${count <= 1}>
           ${Array.from({ length: count }, (_, i) => html`
-            <button
-              class="dot ${i === this.index ? "active" : ""}"
-              @click=${() => this.goTo(i)}
-              aria-label="Go to slide ${i + 1}"
-            ></button>
+            <button class="dot ${i === this.index ? "active" : ""}" @click=${() => this.goTo(i)}></button>
           `)}
         </div>
       </div>

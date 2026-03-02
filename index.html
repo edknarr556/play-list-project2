@@ -10,7 +10,9 @@
     :root, html, body {
       margin: var(--ddd-spacing-0);
       padding: var(--ddd-spacing-0);
-    }
+  background-color: var(--ddd-theme-default-white);
+}
+    
     #demo {
       margin: var(--ddd-spacing-2);
     }
@@ -33,27 +35,43 @@
 
 <body>
   <div id="demo">
-   <play-list>
-  <play-list-slide top-heading="TOP" second-heading="Slide 1">
-    <p>A whole bunch of content in here</p>
-  </play-list-slide>
-  <play-list-slide top-heading="TOP" second-heading="Slide 2">
-    <p>A whole bunch of content in here</p>
-  </play-list-slide>
-  <play-list-slide top-heading="TOP" second-heading="Slide 3">
-    <p>A whole bunch of content in here</p>
-  </play-list-slide>
-  <play-list-slide top-heading="TOP" second-heading="Slide 4">
-    <p>A whole bunch of content in here</p>
-</play-list>  
+    <play-list-project2 title="My Playlist">
+      <play-list-slide top-heading="TOP" second-heading="Slide 1">
+        <p>A whole bunch of content in here</p>
+      </play-list-slide>
+
+      <play-list-slide
+        style="--play-list-card-bg: #fff5e6;"
+        top-heading="TOP"
+        second-heading="Slide 2"
+      >
+        <p>A whole bunch of content in here</p>
+      </play-list-slide>
+
+      <play-list-slide
+        style="--play-list-card-bg: #eef5ff;"
+        top-heading="TOP"
+        second-heading="Slide 3"
+      >
+        <p>A whole bunch of content in here</p>
+      </play-list-slide>
+
+      <play-list-slide
+        style="--play-list-card-bg: #ecfff2;"
+        top-heading="TOP"
+        second-heading="Slide 4"
+      >
+        <p>A whole bunch of content in here</p>
+      </play-list-slide>
+    </play-list-project2>
   </div>
   <script type="module" src="./play-list-project2.js"></script>
+
 
   <!-- Take HAX, the Web and you further down the rabbit hole -->
   <style>
     #follow-the-white-rabbit {
       margin: var(--ddd-spacing-4) auto var(--ddd-spacing-16)  var(--ddd-spacing-4);
-      background-color: var(--ddd-accent-4);
       color: var(--ddd-theme-default-coalyGray);
     }
     #follow-the-white-rabbit[open] summary {
